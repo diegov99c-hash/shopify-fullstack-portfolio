@@ -1,0 +1,1 @@
+/Users/diegov99/Desktop/shopify-fullstack-portfolio/shopify-theme/AGENTS.md
