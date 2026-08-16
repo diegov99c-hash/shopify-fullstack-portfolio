@@ -16,22 +16,30 @@
       {% endif %}
     </a>
 
-    {% if section.settings.menu != blank %}
-      <nav class="site-header__navigation" aria-label="Main navigation">
-        <ul class="site-header__menu">
-          {% for link in section.settings.menu.links %}
-            <li class="site-header__menu-item">
-              <a
-                href="{{ link.url }}"
-                class="site-header__menu-link"
-              >
-                {{ link.title }}
-              </a>
-            </li>
-          {% endfor %}
-        </ul>
-      </nav>
-    {% endif %}
+    <div class="site-header__actions">
+      {% if section.settings.menu != blank %}
+        <nav class="site-header__navigation" aria-label="Main navigation">
+          <ul class="site-header__menu">
+            {% for link in section.settings.menu.links %}
+              <li class="site-header__menu-item">
+                <a
+                  href="{{ link.url }}"
+                  class="site-header__menu-link"
+                >
+                  {{ link.title }}
+                </a>
+              </li>
+            {% endfor %}
+          </ul>
+        </nav>
+      {% endif %}
+
+      <a href="{{ routes.cart_url }}" class="site-header__cart">
+        Cart
+        <span aria-hidden="true">(<span data-cart-count>{{ cart.item_count }}</span>)</span>
+        <span class="site-header__cart-count-text" data-cart-count-text>{{ cart.item_count }} items</span>
+      </a>
+    </div>
 
     <button
       class="site-header__menu-toggle"
@@ -104,6 +112,33 @@
     padding: 0;
     margin: 0;
     list-style: none;
+  }
+
+  .site-header__actions {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+  }
+
+  .site-header__cart {
+    color: inherit;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .site-header__cart:hover {
+    text-decoration: underline;
+  }
+
+  .site-header__cart-count-text {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
   }
 
   .site-header__menu-link {

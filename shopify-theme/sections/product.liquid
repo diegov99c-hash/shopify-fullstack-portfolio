@@ -5,41 +5,364 @@
   https://shopify.dev/docs/storefronts/themes/architecture/templates/product
 {% endcomment %}
 
-<div class="product-images">
-  {% for image in product.images %}
-    {% render 'image', class: 'product-image', image: image %}
-  {% endfor %}
-</div>
+{% assign current_variant = product.selected_or_first_available_variant %}
 
-<div class="product-info">
-  <h1>{{ product.title }}</h1>
-  <p>{{ product.price | money }}</p>
-  <p>{{ product.description }}</p>
-</div>
+<section class="product-page" data-product-section>
+  <div class="product-page__media">
+    {% if product.featured_image %}
+      {% render 'image',
+        class: 'product-page__image',
+        image: product.featured_image,
+        width: 1200
+      %}
+    {% else %}
+      {{ 'product-1' | placeholder_svg_tag: 'product-page__placeholder' }}
+    {% endif %}
+  </div>
 
-<div class="product-form">
-  {% form 'product', product %}
-    {% assign current_variant = product.selected_or_first_available_variant %}
+  <div class="product-page__details">
+    <p class="product-page__availability" data-availability>
+      {% if current_variant.available %}
+        In stock
+      {% else %}
+        Sold out
+      {% endif %}
+    </p>
 
-    <select name="id">
-      {% for variant in product.variants %}
-        <option
-          value="{{ variant.id }}"
-          {% if variant == current_variant %}
-            selected="selected"
+    <h1 class="product-page__title">{{ product.title }}</h1>
+
+    <p class="product-page__price" data-price>{{ current_variant.price | money }}</p>
+
+    {% if product.description != blank %}
+      <div class="product-page__description">
+        {{ product.description }}
+      </div>
+    {% endif %}
+
+    {% form 'product', product, class: 'product-page__form', data-product-form: '' %}
+      {% if product.has_only_default_variant %}
+        <input type="hidden" name="id" value="{{ current_variant.id }}">
+      {% else %}
+        <div class="product-page__field">
+          <label for="ProductVariant-{{ section.id }}">Variant</label>
+          <select id="ProductVariant-{{ section.id }}" name="id" data-variant-select>
+            {% for variant in product.variants %}
+              <option
+                value="{{ variant.id }}"
+                data-available="{{ variant.available }}"
+                data-price="{{ variant.price | money }}"
+                {% if variant == current_variant %}
+                  selected
+                {% endif %}
+              >
+                {{ variant.title }} - {{ variant.price | money }}
+                {% unless variant.available %} - Sold out{% endunless %}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+      {% endif %}
+
+      <div class="product-page__field">
+        <label for="ProductQuantity-{{ section.id }}">Quantity</label>
+        <div class="quantity-control" data-quantity-control>
+          <button type="button" aria-label="Decrease quantity" data-quantity-decrease>-</button>
+          <input
+            id="ProductQuantity-{{ section.id }}"
+            type="number"
+            name="quantity"
+            min="1"
+            value="1"
+            inputmode="numeric"
+            data-quantity-input
+          >
+          <button type="button" aria-label="Increase quantity" data-quantity-increase>+</button>
+        </div>
+      </div>
+
+      <button
+        class="product-page__submit"
+        type="submit"
+        {% unless current_variant.available %}
+          disabled
+        {% endunless %}
+        data-add-to-cart
+      >
+        <span data-add-to-cart-text>
+          {% if current_variant.available %}
+            Add to cart
+          {% else %}
+            Sold out
           {% endif %}
-        >
-          {{ variant.title }} - {{ variant.price | money }}
-        </option>
-      {% endfor %}
-    </select>
+        </span>
+      </button>
 
-    <input type="text" name="quantity" min="1" value="1">
+      <p class="product-page__message" role="status" aria-live="polite" data-cart-message></p>
+    {% endform %}
+  </div>
+</section>
 
-    <input type="submit" value="Add to cart">
-    {{ form | payment_button }}
-  {% endform %}
-</div>
+{% stylesheet %}
+  .product-page {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(300px, 480px);
+    gap: clamp(28px, 5vw, 56px);
+    align-items: start;
+    padding-block: 56px;
+  }
+
+  .product-page__media {
+    background: rgba(0, 0, 0, 0.04);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .product-page__image img,
+  .product-page__placeholder {
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+  }
+
+  .product-page__details {
+    display: grid;
+    gap: 20px;
+  }
+
+  .product-page__availability {
+    font-size: 0.9rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .product-page__title {
+    font-size: clamp(2rem, 4vw, 3.75rem);
+    line-height: 1;
+  }
+
+  .product-page__price {
+    font-size: 1.35rem;
+    font-weight: 700;
+  }
+
+  .product-page__description {
+    line-height: 1.7;
+  }
+
+  .product-page__form {
+    display: grid;
+    gap: 16px;
+    margin-top: 12px;
+  }
+
+  .product-page__field {
+    display: grid;
+    gap: 8px;
+  }
+
+  .product-page__field label {
+    font-weight: 700;
+  }
+
+  .product-page__field select,
+  .product-page__field input {
+    width: 100%;
+    min-height: 48px;
+    padding: 10px 12px;
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    background: #fff;
+  }
+
+  .quantity-control {
+    display: grid;
+    grid-template-columns: 48px minmax(64px, 96px) 48px;
+    width: max-content;
+    max-width: 100%;
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    background: #fff;
+  }
+
+  .quantity-control button,
+  .quantity-control input {
+    min-height: 48px;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    text-align: center;
+  }
+
+  .quantity-control button {
+    cursor: pointer;
+    font-size: 1.25rem;
+  }
+
+  .quantity-control button:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+  }
+
+  .quantity-control input {
+    border-inline: 1px solid rgba(0, 0, 0, 0.2);
+  }
+
+  .product-page__submit {
+    min-height: 52px;
+    border: 0;
+    background: #111;
+    color: #fff;
+    cursor: pointer;
+    font: inherit;
+    font-weight: 700;
+  }
+
+  .product-page__submit:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+  }
+
+  .product-page__message {
+    min-height: 1.5em;
+  }
+
+  .product-page__message[data-state='success'] {
+    color: #0f6b2f;
+  }
+
+  .product-page__message[data-state='error'] {
+    color: #a10f0f;
+  }
+
+  @media screen and (max-width: 749px) {
+    .product-page {
+      grid-template-columns: 1fr;
+      gap: 28px;
+      padding-block: 32px;
+    }
+
+    .product-page__title {
+      font-size: 2.25rem;
+    }
+  }
+{% endstylesheet %}
+
+{% javascript %}
+  function syncProductQuantity(control) {
+    const input = control.querySelector('[data-quantity-input]');
+    const decrease = control.querySelector('[data-quantity-decrease]');
+    const value = Math.max(1, parseInt(input.value, 10) || 1);
+
+    input.value = value;
+    decrease.disabled = value <= 1;
+  }
+
+  document.querySelectorAll('[data-quantity-control]').forEach(syncProductQuantity);
+
+  document.addEventListener('click', function (event) {
+    const decrease = event.target.closest('[data-quantity-decrease]');
+    const increase = event.target.closest('[data-quantity-increase]');
+
+    if (!decrease && !increase) return;
+
+    const control = event.target.closest('[data-quantity-control]');
+    const input = control.querySelector('[data-quantity-input]');
+    const value = Math.max(1, parseInt(input.value, 10) || 1);
+
+    input.value = increase ? value + 1 : Math.max(1, value - 1);
+    syncProductQuantity(control);
+  });
+
+  document.addEventListener('change', function (event) {
+    const input = event.target.closest('[data-quantity-input]');
+
+    if (!input) return;
+
+    syncProductQuantity(input.closest('[data-quantity-control]'));
+  });
+
+  document.addEventListener('submit', async function (event) {
+    const form = event.target.closest('[data-product-form]');
+
+    if (!form) return;
+
+    event.preventDefault();
+
+    if (form.dataset.loading === 'true') return;
+
+    const button = form.querySelector('[data-add-to-cart]');
+    const buttonText = form.querySelector('[data-add-to-cart-text]');
+    const message = form.querySelector('[data-cart-message]');
+    const originalText = buttonText.textContent.trim();
+
+    form.dataset.loading = 'true';
+    button.disabled = true;
+    buttonText.textContent = 'Adding...';
+    message.dataset.state = '';
+    message.textContent = '';
+
+    try {
+      const root = window.Shopify && window.Shopify.routes ? window.Shopify.routes.root : '/';
+      const response = await fetch(root + 'cart/add.js', {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+        },
+        body: new FormData(form),
+      });
+
+      const item = await response.json();
+
+      if (!response.ok) {
+        throw new Error(item.description || 'Unable to add this item to the cart.');
+      }
+
+      const cartResponse = await fetch(root + 'cart.js', {
+        headers: {
+          Accept: 'application/json',
+        },
+      });
+      const cart = await cartResponse.json();
+
+      document.querySelectorAll('[data-cart-count]').forEach(function (count) {
+        count.textContent = cart.item_count;
+      });
+
+      document.querySelectorAll('[data-cart-count-text]').forEach(function (countText) {
+        countText.textContent = cart.item_count + (cart.item_count === 1 ? ' item' : ' items');
+      });
+
+      message.dataset.state = 'success';
+      message.textContent = item.product_title + ' was added to your cart.';
+    } catch (error) {
+      message.dataset.state = 'error';
+      message.textContent = error.message;
+    } finally {
+      form.dataset.loading = 'false';
+      button.disabled = false;
+      buttonText.textContent = originalText;
+    }
+  });
+
+  document.addEventListener('change', function (event) {
+    const select = event.target.closest('[data-variant-select]');
+
+    if (!select) return;
+
+    const section = select.closest('[data-product-section]');
+    const option = select.selectedOptions[0];
+    const available = option.dataset.available === 'true';
+    const price = section.querySelector('[data-price]');
+    const availability = section.querySelector('[data-availability]');
+    const button = section.querySelector('[data-add-to-cart]');
+    const buttonText = section.querySelector('[data-add-to-cart-text]');
+
+    price.textContent = option.dataset.price;
+    availability.textContent = available ? 'In stock' : 'Sold out';
+    button.disabled = !available;
+    buttonText.textContent = available ? 'Add to cart' : 'Sold out';
+  });
+{% endjavascript %}
 
 {% schema %}
 {
