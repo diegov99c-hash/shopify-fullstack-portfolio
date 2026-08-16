@@ -1,0 +1,158 @@
+<section class="testimonials">
+  <div class="testimonials__inner">
+
+    {% if section.settings.heading != blank %}
+      <h2 class="testimonials__heading">
+        {{ section.settings.heading }}
+      </h2>
+    {% endif %}
+
+    {% if section.blocks.size > 0 %}
+      <div class="testimonials__grid">
+
+        {% for block in section.blocks %}
+          <article
+            class="testimonial-card"
+            {{ block.shopify_attributes }}
+          >
+
+            {% if block.settings.quote != blank %}
+              <p class="testimonial-card__quote">
+                “{{ block.settings.quote }}”
+              </p>
+            {% endif %}
+
+            {% if block.settings.author != blank %}
+              <p class="testimonial-card__author">
+                {{ block.settings.author }}
+              </p>
+            {% endif %}
+
+            {% if block.settings.role != blank %}
+              <p class="testimonial-card__role">
+                {{ block.settings.role }}
+              </p>
+            {% endif %}
+
+          </article>
+        {% endfor %}
+
+      </div>
+    {% endif %}
+
+  </div>
+</section>
+
+<style>
+  .testimonials {
+    padding: 64px 32px;
+  }
+
+  .testimonials__inner {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .testimonials__heading {
+    margin-bottom: 32px;
+    font-size: clamp(2rem, 4vw, 3rem);
+  }
+
+  .testimonials__grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 24px;
+  }
+
+  .testimonial-card {
+    padding: 24px;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    border-radius: 12px;
+  }
+
+  .testimonial-card__quote {
+    margin: 0 0 20px;
+    font-size: 1.1rem;
+    line-height: 1.6;
+  }
+
+  .testimonial-card__author {
+    margin: 0;
+    font-weight: 600;
+  }
+
+  .testimonial-card__role {
+    margin: 4px 0 0;
+    opacity: 0.7;
+    font-size: 0.9rem;
+  }
+
+  @media screen and (max-width: 899px) {
+    .testimonials__grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media screen and (max-width: 599px) {
+    .testimonials {
+      padding: 40px 20px;
+    }
+  }
+</style>
+
+{% schema %}
+{
+  "name": "Testimonials",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "What our customers say"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "testimonial",
+      "name": "Testimonial",
+      "settings": [
+        {
+          "type": "textarea",
+          "id": "quote",
+          "label": "Quote",
+          "default": "This product made my daily routine much easier."
+        },
+        {
+          "type": "text",
+          "id": "author",
+          "label": "Author",
+          "default": "Customer name"
+        },
+        {
+          "type": "text",
+          "id": "role",
+          "label": "Role or location",
+          "default": "Auckland, New Zealand"
+        }
+      ]
+    }
+  ],
+  "max_blocks": 6,
+  "presets": [
+    {
+      "name": "Testimonials",
+      "blocks": [
+        {
+          "type": "testimonial"
+        },
+        {
+          "type": "testimonial"
+        },
+        {
+          "type": "testimonial"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}
