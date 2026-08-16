@@ -1,76 +1,210 @@
-<header>
-  <h2 class="header__title">
-    {{ shop.name | link_to: routes.root_url }}
-  </h2>
+<header class="site-header">
+  <div class="site-header__inner">
 
-  <div class="header__menu">
-    {% for link in section.settings.menu.links %}
-      {{ link.title | link_to: link.url }}
-    {% endfor %}
-  </div>
+    <a href="{{ routes.root_url }}" class="site-header__logo">
+      {% if section.settings.logo != blank %}
+        {{
+          section.settings.logo
+          | image_url: width: 300
+          | image_tag:
+            loading: 'eager',
+            widths: '120, 180, 240, 300',
+            alt: shop.name
+        }}
+      {% else %}
+        <span>{{ shop.name }}</span>
+      {% endif %}
+    </a>
 
-  <div class="header__icons">
-    {% if shop.customer_accounts_enabled %}
-      <shopify-account menu="{{ section.settings.customer_account_menu }}">
-        {{ 'icon-account.svg' | inline_asset_content }}
-      </shopify-account>
+    {% if section.settings.menu != blank %}
+      <nav class="site-header__navigation" aria-label="Main navigation">
+        <ul class="site-header__menu">
+          {% for link in section.settings.menu.links %}
+            <li class="site-header__menu-item">
+              <a
+                href="{{ link.url }}"
+                class="site-header__menu-link"
+              >
+                {{ link.title }}
+              </a>
+            </li>
+          {% endfor %}
+        </ul>
+      </nav>
     {% endif %}
 
-    <a href="{{ routes.cart_url }}">
-      {% if cart.item_count > 0 %}
-        <sup>{{ cart.item_count }}</sup>
-      {% endif %}
+    <button
+      class="site-header__menu-toggle"
+      type="button"
+      aria-expanded="false"
+      aria-controls="mobile-navigation-{{ section.id }}"
+      aria-label="Open menu"
+    >
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
 
-      {{ 'icon-cart.svg' | inline_asset_content }}
-    </a>
   </div>
+
+  {% if section.settings.menu != blank %}
+    <nav
+      id="mobile-navigation-{{ section.id }}"
+      class="site-header__mobile-navigation"
+      aria-label="Mobile navigation"
+      hidden
+    >
+      <ul class="site-header__mobile-menu">
+        {% for link in section.settings.menu.links %}
+          <li>
+            <a href="{{ link.url }}">
+              {{ link.title }}
+            </a>
+          </li>
+        {% endfor %}
+      </ul>
+    </nav>
+  {% endif %}
 </header>
 
-{% stylesheet %}
-  header {
-    height: 5rem;
+<style>
+  .site-header {
+    position: relative;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    background: #fff;
+  }
+
+  .site-header__inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 18px 32px;
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 32px;
   }
-  header a {
-    position: relative;
+
+  .site-header__logo {
+    color: inherit;
     text-decoration: none;
-    color: var(--color-foreground);
+    font-size: 1.4rem;
+    font-weight: 700;
+  }
+
+  .site-header__logo img {
+    display: block;
+    max-width: 160px;
+    height: auto;
+  }
+
+  .site-header__menu {
     display: flex;
     align-items: center;
-    justify-content: center;
+    gap: 28px;
+    padding: 0;
+    margin: 0;
+    list-style: none;
   }
-  header a sup {
-    position: absolute;
-    left: 100%;
-    overflow: hidden;
-    max-width: var(--page-margin);
+
+  .site-header__menu-link {
+    color: inherit;
+    text-decoration: none;
   }
-  header svg {
-    width: 2rem;
+
+  .site-header__menu-link:hover {
+    text-decoration: underline;
   }
-  header .header__menu,
-  header .header__icons {
-    display: flex;
-    gap: 1rem;
+
+  .site-header__menu-toggle {
+    display: none;
+    width: 40px;
+    height: 40px;
+    padding: 8px;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
   }
-{% endstylesheet %}
+
+  .site-header__menu-toggle span {
+    display: block;
+    height: 2px;
+    margin: 5px 0;
+    background: currentColor;
+  }
+
+  .site-header__mobile-navigation {
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+  }
+
+  .site-header__mobile-menu {
+    margin: 0;
+    padding: 20px 32px;
+    list-style: none;
+  }
+
+  .site-header__mobile-menu li + li {
+    margin-top: 14px;
+  }
+
+  .site-header__mobile-menu a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  @media screen and (max-width: 749px) {
+    .site-header__inner {
+      padding: 16px 20px;
+    }
+
+    .site-header__navigation {
+      display: none;
+    }
+
+    .site-header__menu-toggle {
+      display: block;
+    }
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const header = document.querySelector('#shopify-section-{{ section.id }}');
+
+    if (!header) return;
+
+    const button = header.querySelector('.site-header__menu-toggle');
+    const mobileNavigation = header.querySelector('.site-header__mobile-navigation');
+
+    if (!button || !mobileNavigation) return;
+
+    button.addEventListener('click', function () {
+      const isOpen = button.getAttribute('aria-expanded') === 'true';
+
+      button.setAttribute('aria-expanded', String(!isOpen));
+      mobileNavigation.hidden = isOpen;
+
+      button.setAttribute(
+        'aria-label',
+        isOpen ? 'Open menu' : 'Close menu'
+      );
+    });
+  });
+</script>
 
 {% schema %}
 {
-  "name": "t:general.header",
+  "name": "Header",
   "settings": [
     {
-      "type": "link_list",
-      "id": "menu",
-      "label": "t:labels.menu"
+      "type": "image_picker",
+      "id": "logo",
+      "label": "Logo"
     },
     {
       "type": "link_list",
-      "id": "customer_account_menu",
-      "label": "t:labels.customer_account_menu",
-      "default": "customer-account-main-menu"
+      "id": "menu",
+      "label": "Menu",
+      "default": "main-menu"
     }
   ]
 }
