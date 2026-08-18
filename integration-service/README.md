@@ -79,12 +79,23 @@ For more information on the Shopify Dev MCP please read [the documentation](http
 
 ### Application Storage
 
-This template uses [Prisma](https://www.prisma.io/) to store session data, by default using an [SQLite](https://www.sqlite.org/index.html) database.
-The database is defined as a Prisma schema in `prisma/schema.prisma`.
+This project uses [Prisma](https://www.prisma.io/) with PostgreSQL to store Shopify app sessions and minimal webhook event metadata.
+The database is defined in `prisma/schema.prisma`.
 
-This use of SQLite works in production if your app runs as a single instance.
-The database that works best for you depends on the data your app needs and how it is queried.
-Here’s a short list of databases providers that provide a free tier to get started:
+For local development, set `DATABASE_URL` in `.env` and run:
+
+```shell
+npm run setup
+```
+
+Webhook event metadata is retained for a maximum of 30 days. Delete older records manually or from a scheduler with:
+
+```shell
+npm run cleanup:webhooks
+```
+
+Production PostgreSQL should use provider-managed encryption at rest and TLS/SSL connections where appropriate.
+Here’s a short list of database providers that provide a free tier to get started:
 
 | Database   | Type             | Hosters                                                                                                                                                                                                                                    |
 | ---------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
