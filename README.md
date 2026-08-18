@@ -243,19 +243,19 @@ Validated during V1 development:
 
 ### Storefront
 
-Screenshots to be added.
+![Shopify custom storefront](docs/images/storefront.png)
 
 ### Product Page
 
-Screenshots to be added.
+![Shopify custom product page](docs/images/product-page.png)
 
 ### Integration Dashboard
 
-Screenshots to be added.
+![Shopify integration dashboard](docs/images/integration-dashboard.png)
 
 ### Order Analytics
 
-Screenshots to be added.
+![Shopify order analytics](docs/images/order-analytics.png)
 
 ## V1 Status
 
